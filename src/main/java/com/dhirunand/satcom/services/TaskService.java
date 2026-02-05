@@ -9,6 +9,7 @@ import com.dhirunand.satcom.repositories.TaskRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -59,15 +60,16 @@ public class TaskService {
 
 
     @Transactional()
-    public List<TaskResponseDto> getAllTasks(String sortBy) {
-        return repository.findBy(Sort.by(sortBy))
-                .stream()
-                .map(task -> mapper.map(task, TaskResponseDto.class))
-                .toList();
+    public Page<TaskResponseDto> getAllTasks(String status, Pageable pageable) {
+        Page<Task> taskPage;
+
+        if (status == null) taskPage =  repository.findAll(pageable);
+        else taskPage = repository.findByStatus(getTaskStatusObjFromString(status), pageable);
+
+        return taskPage.map(task -> mapper.map(task, TaskResponseDto.class));
     }
 
-    @Transactional()
-    public List<TaskResponseDto> findByStatus(String status, Pageable pageable) {
+    private TaskStatus getTaskStatusObjFromString(String status){
         TaskStatus taskStatus;
         try {
             taskStatus = TaskStatus.valueOf(status.toUpperCase());
@@ -77,10 +79,7 @@ public class TaskService {
                     "Invalid status. Allowed values: " + Arrays.toString(TaskStatus.values())
             );
         }
-
-        return repository.findByStatus(taskStatus, pageable)
-                .stream()
-                .map(task -> mapper.map(task, TaskResponseDto.class))
-                .collect(Collectors.toList());
+        return taskStatus;
     }
+
 }

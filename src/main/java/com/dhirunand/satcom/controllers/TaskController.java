@@ -51,11 +51,11 @@ public class TaskController {
 
     // Filtered Paginated Sorted result
     @GetMapping()
-    public ResponseEntity<List<TaskResponseDto>> getAllTasks(@RequestParam(defaultValue = "PENDING") String status,
+    public ResponseEntity<List<TaskResponseDto>> getAllTasks(@RequestParam(required = false) String status,
                                                              @RequestParam(defaultValue = "dueDate") String sortBy,
                                                              @RequestParam(defaultValue = "0") Integer pageNumber) {
         PageRequest pageRequest = PageRequest.of(pageNumber, PAGE_SIZE, Sort.by(sortBy));
-        return ResponseEntity.ok(service.findByStatus(status, pageRequest));
+        return ResponseEntity.ok(service.getAllTasks(status, pageRequest).getContent());
     }
 
 }
